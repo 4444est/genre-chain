@@ -28,4 +28,10 @@ class GameViewModel(
             }
         }
     }
+
+    fun haveGenreInCommon(artist1: ArtistDto, artist2: ArtistDto): Boolean {
+        val artist1Genres = artist1.genres.map { it.lowercase() }
+        val artist2Genres = artist2.genres.map { it.lowercase() }
+        return artist1Genres.any { it in artist2Genres }
+    }
 }
