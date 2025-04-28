@@ -1,54 +1,87 @@
 package com.example.genrechain.ui.screens
 
+import android.app.Application
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-
-import com.example.genrechain.viewmodel.GameViewModel          // ← your VM
-import androidx.lifecycle.viewmodel.compose.viewModel          // viewModel()
-import androidx.compose.runtime.collectAsState                  // flow → State
-import androidx.compose.foundation.lazy.LazyColumn              // list UI
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.genrechain.data.remote.dto.ArtistDto
+import com.example.genrechain.viewmodel.GameViewModel
 
 @Composable
 fun StartScreen(
-    viewModel: GameViewModel = viewModel()
+    onArtistClick: (ArtistDto) -> Unit
 ) {
+    // pull Application for your AndroidViewModel
+//    val application = LocalContext.current.applicationContext as Application
+
+    // explicitly create your VM with the Application constructor
+    val viewModel: GameViewModel = viewModel()
+
+    // UI state
     var query by rememberSaveable { mutableStateOf("") }
     val results by viewModel.searchResults.collectAsState()
-    val error by viewModel.error.collectAsState()
+    val error   by viewModel.error.collectAsState()
+    var listVisible by remember { mutableStateOf(true) }
 
-    Column(Modifier.padding(16.dp)) {
-        OutlinedTextField(
-            value = query,
-            onValueChange = { query = it },
-            label = { Text("Search artist") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Button(
-            onClick = { viewModel.search(query) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
-        ) { Text("Search") }
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        // Search bar + button
+        OutlinedTextField(value = query, onValueChange = { query = it },
+            label = { Text("Search artist") }, modifier = Modifier.fillMaxWidth())
+        Button(onClick = {
+                viewModel.search(query)
+                listVisible = true
+            },
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) { Text("Search") }
 
-        error?.let { Text("Error: $it", color = Color.Red) }
+        // Error display
+        error?.let {
+            Text("Error: $it",
+                color = Color.Red,
+                modifier = Modifier.padding(top = 8.dp))
+        }
 
-        LazyColumn {
-            items(results) { artist ->
-                Text(artist.name)
+        Spacer(Modifier.height(16.dp))
+
+        // Results list
+        if (listVisible && results.isNotEmpty()) {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(results) { artist ->
+                    Text(
+                        text = artist.name,
+                        style = MaterialTheme.typography.subtitle1,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                viewModel.onArtistClicked(artist)
+                                listVisible = false
+                                onArtistClick(artist)
+                            }
+                            .padding(vertical = 12.dp, horizontal = 8.dp)
+                    )
+                    Divider()
+                }
+            }
+        }
+
+        // After click: show chosen artist
+        if (!listVisible) {
+            viewModel.selected.collectAsState().value?.let { chosen ->
+                Text(
+                    "You picked: ${chosen.name}\n" +
+                            "Genres: ${chosen.genres.joinToString()}",
+                    style = MaterialTheme.typography.h6,
+                    modifier = Modifier.padding(top = 16.dp)
+                )
             }
         }
     }

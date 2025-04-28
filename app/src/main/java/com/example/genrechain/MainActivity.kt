@@ -16,7 +16,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             GenreChainTheme {
-                StartScreen()   // ViewModel provided by default
+                StartScreen { artist ->
+                    // here you get back the clicked ArtistDto —
+                    // for now we just log it, later you can navigate
+                    Log.d("MainActivity", "User picked: ${artist.name} (${artist.id})")
+                }
             }
         }
     }
