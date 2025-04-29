@@ -31,6 +31,9 @@ fun StartScreen(
     val results by viewModel.searchResults.collectAsState()
     val error by viewModel.error.collectAsState()
 
+    val start by viewModel.startArtist.collectAsState()
+    val target by viewModel.targetArtist.collectAsState()
+
     Column(Modifier.padding(16.dp)) {
         OutlinedTextField(
             value = query,

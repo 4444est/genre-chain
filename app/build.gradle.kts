@@ -99,4 +99,7 @@ dependencies {
     // gson
     implementation("com.google.code.gson:gson:2.10.1")
 
+    implementation("androidx.datastore:datastore-preferences:1.1.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
 }

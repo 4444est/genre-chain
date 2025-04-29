@@ -10,7 +10,7 @@ import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow
 
 class MusicBrainzRepository(
-    private val api: MusicBrainzService = MbApi.service,
+    private val api: MusicBrainzService,
     private val store: SelectedArtistStore
 ) {
     private val gson = Gson()
@@ -38,21 +38,24 @@ class MusicBrainzRepository(
      * and map them into your unified ArtistDto.
      */
     suspend fun lookupArtistWithGenres(mbid: String): ArtistDto {
-        val resp: ArtistDetailResponse = api.getArtist(mbid)
+        val detail = api.getArtist(mbid)
         return ArtistDto(
-            id             = resp.id,
-            name           = resp.name,
-            disambiguation = resp.disambiguation,
-            // pull out just the genre names
-            genres         = resp.genres.map { it.name }
+            id            = detail.id,
+            name          = detail.name,
+            disambiguation = detail.disambiguation,
+            genres        = detail.genres.map { it.name }
         )
     }
 
     /** Persist the user’s selected artist as JSON */
-    suspend fun saveSelectedArtist(artist: ArtistDto) {
-        store.save(artist)
-    }
+//    suspend fun saveSelectedArtist(artist: ArtistDto) {
+//        store.save(artist)
+//    }
+    suspend fun saveStartArtist(artist: ArtistDto) {store.saveStart(artist) }
+    suspend fun saveTargetArtist(artist: ArtistDto) {store.saveTarget(artist)}
 
+    fun savedStartArtistFlow(): Flow<ArtistDto?> = store.startFlow
+    fun savedTargetArtistFlow(): Flow<ArtistDto?> = store.targetFlow
     /** Observe the persisted artist; starts up-to-date on disk */
-    fun savedArtistFlow(): Flow<ArtistDto?> = store.flow
+//    fun savedArtistFlow(): Flow<ArtistDto?> = store.flow
 }
