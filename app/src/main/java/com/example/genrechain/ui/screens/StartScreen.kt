@@ -8,138 +8,193 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.genrechain.data.remote.dto.ArtistDto
 import com.example.genrechain.viewmodel.GameViewModel
 
 @Composable
 fun StartScreen(
-    onArtistClick: (ArtistDto) -> Unit
+    onStartClick: (ArtistDto) -> Unit,
+    onTargetClick: (ArtistDto) -> Unit
 ) {
     val viewModel: GameViewModel = viewModel()
 
+    // two inputs
     var query by rememberSaveable { mutableStateOf("") }
-    var targetQuery by rememberSaveable { mutableStateOf("") }  // Target artist input
+    var targetQuery by rememberSaveable { mutableStateOf("") }
 
+    // track which dropdown is showing
+    var activeSection by remember { mutableStateOf(0) }
+    var listVisible by remember { mutableStateOf(false) }
+
+    // flows from VM
     val results by viewModel.searchResults.collectAsState()
-    val error by viewModel.error.collectAsState()
-    var listVisible by remember { mutableStateOf(true) }
+    val error   by viewModel.error.collectAsState()
+    val start   by viewModel.startArtist.collectAsState()
+    val target  by viewModel.targetArtist.collectAsState()
 
-    Surface(color = MaterialTheme.colors.background) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
+    Column(Modifier
+        .fillMaxSize()
+        .padding(16.dp)
+    ) {
+        // ─── First Search Card ──────────────────────────────────
+        Card(
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            elevation = 8.dp
         ) {
-            // Search Section
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                elevation = 8.dp
-            ) {
-                Column(Modifier.padding(16.dp)) {
-                    OutlinedTextField(
-                        value = query,
-                        onValueChange = { query = it },
-                        label = { Text("Search artist") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Button(
-                        onClick = {
-                            viewModel.search(query)
-                            listVisible = true
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Search")
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            // Target Artist Section
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                elevation = 8.dp
-            ) {
-                Column(Modifier.padding(16.dp)) {
-                    OutlinedTextField(
-                        value = targetQuery,
-                        onValueChange = { targetQuery = it },
-                        label = { Text("Enter target artist") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        text = if (targetQuery.isNotEmpty()) " Target: $targetQuery" else "No target artist entered",
-                        style = MaterialTheme.typography.h6,
-                        color = MaterialTheme.colors.primary
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            // Error Section
-            error?.let {
-                Text(
-                    "Error: $it",
-                    color = Color.Red,
-                    modifier = Modifier.padding(top = 8.dp)
+            Column(Modifier.padding(16.dp)) {
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    label = { Text("Search start artist") },
+                    modifier = Modifier.fillMaxWidth()
                 )
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            // Search Results or Picked Artist
-            if (listVisible && results.isNotEmpty()) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize()
+                Spacer(Modifier.height(8.dp))
+                Button(
+                    onClick = {
+                        viewModel.search(query)
+                        activeSection = 1
+                        listVisible = true
+                    },
+                    Modifier.fillMaxWidth()
                 ) {
-                    items(results) { artist ->
-                        Text(
-                            text = artist.name,
-                            style = MaterialTheme.typography.subtitle1,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    viewModel.onArtistClicked(artist)
-                                    listVisible = false
-                                    onArtistClick(artist)
-                                }
-                                .padding(vertical = 12.dp, horizontal = 8.dp)
-                        )
-                        Divider()
-                    }
+                    Text("Search")
                 }
-            } else {
-                viewModel.selected.collectAsState().value?.let { chosen ->
-                    Card(
-                        modifier = Modifier
+
+                if (listVisible && activeSection == 1 && results.isNotEmpty()) {
+                    Surface(
+                        Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp),
+                            .heightIn(max = 200.dp)
+                            .padding(top = 8.dp)
+                            .zIndex(1f),
                         elevation = 8.dp
                     ) {
-                        Column(Modifier.padding(16.dp)) {
-                            Text(
-                                text = " You picked: ${chosen.name}",
-                                style = MaterialTheme.typography.h6,
-                                color = MaterialTheme.colors.secondary
-                            )
-                            Spacer(Modifier.height(8.dp))
-                            Text(
-                                text = "Genres: ${chosen.genres.joinToString()}",
-                                style = MaterialTheme.typography.subtitle1
-                            )
+                        LazyColumn {
+                            items(results) { artist ->
+                                Text(
+                                    artist.name,
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            viewModel.onStartClicked(artist)
+                                            listVisible = false
+                                            onStartClick(artist)
+                                        }
+                                        .padding(12.dp)
+                                )
+                                Divider()
+                            }
                         }
                     }
+                }
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // ─── Second Search Card ─────────────────────────────────
+        Card(
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            elevation = 8.dp
+        ) {
+            Column(Modifier.padding(16.dp)) {
+                OutlinedTextField(
+                    value = targetQuery,
+                    onValueChange = { targetQuery = it },
+                    label = { Text("Search target artist") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                Button(
+                    onClick = {
+                        viewModel.search(targetQuery)
+                        activeSection = 2
+                        listVisible = true
+                    },
+                    Modifier.fillMaxWidth()
+                ) {
+                    Text("Search")
+                }
+
+                if (listVisible && activeSection == 2 && results.isNotEmpty()) {
+                    Surface(
+                        Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 200.dp)
+                            .padding(top = 8.dp)
+                            .zIndex(1f),
+                        elevation = 8.dp
+                    ) {
+                        LazyColumn {
+                            items(results) { artist ->
+                                Text(
+                                    artist.name,
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            viewModel.onTargetClicked(artist)
+                                            listVisible = false
+                                            onTargetClick(artist)
+                                        }
+                                        .padding(12.dp)
+                                )
+                                Divider()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // ─── error display ─────────────────────────────────────
+        error?.let {
+            Text("Error: $it", color = MaterialTheme.colors.error)
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // ─── Picked artists display ────────────────────────────
+        start?.let { artist ->
+            Card(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                elevation = 4.dp
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Text("Start: ${artist.name}", style = MaterialTheme.typography.h6)
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "Genres: ${artist.genres.joinToString()}",
+                        style = MaterialTheme.typography.body2
+                    )
+                }
+            }
+        }
+
+        target?.let { artist ->
+            Card(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                elevation = 4.dp
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Text("Target: ${artist.name}", style = MaterialTheme.typography.h6)
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "Genres: ${artist.genres.joinToString()}",
+                        style = MaterialTheme.typography.body2
+                    )
                 }
             }
         }

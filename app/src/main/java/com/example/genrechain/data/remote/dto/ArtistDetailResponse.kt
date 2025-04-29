@@ -7,20 +7,25 @@ data class ArtistDetailResponse(
     val id: String,
     val name: String,
     val disambiguation: String? = null,
-    val genres: List<GenreEntry> = emptyList(),
-    val tags:   List<TagEntry>   = emptyList()
+    val genres: List<GenreDto> = emptyList()
 )
 
 @Serializable
-data class GenreEntry(
+data class GenreDto(
     val id: String,
-    val name: String,
-    val count: Int,
-    val disambiguation: String? = null
+    val name: String
 )
 
-@Serializable
-data class TagEntry(
-    val name: String,
-    val count: Int
-)
+//@Serializable
+//data class GenreEntry(
+//    val id: String,
+//    val name: String,
+//    val count: Int,
+//    val disambiguation: String? = null
+//)
+//
+//@Serializable
+//data class TagEntry(
+//    val name: String,
+//    val count: Int
+//)

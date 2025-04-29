@@ -18,7 +18,7 @@ interface MusicBrainzService {
     @GET("artist/{mbid}")
     suspend fun getArtist(
         @Path("mbid") mbid: String,
-        @Query("inc") inc: String = "genres+tags",
+        @Query("inc") inc: String = "tags+genres",
         @Query("fmt") fmt: String = "json"
     ): ArtistDetailResponse
 
