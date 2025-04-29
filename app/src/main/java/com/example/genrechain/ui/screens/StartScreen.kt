@@ -6,7 +6,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -17,13 +16,14 @@ import com.example.genrechain.viewmodel.GameViewModel
 @Composable
 fun StartScreen(
     onStartClick: (ArtistDto) -> Unit,
-    onTargetClick: (ArtistDto) -> Unit
+    onTargetClick: (ArtistDto) -> Unit,
+    onStartGame: () -> Unit
 ) {
     val viewModel: GameViewModel = viewModel()
 
     // two inputs
-    var query by rememberSaveable { mutableStateOf("") }
-    var targetQuery by rememberSaveable { mutableStateOf("") }
+    var query by remember { mutableStateOf("") }
+    var targetQuery by remember { mutableStateOf("") }
 
     // track which dropdown is showing
     var activeSection by remember { mutableStateOf(0) }
@@ -32,6 +32,7 @@ fun StartScreen(
     // flows from VM
     val results by viewModel.searchResults.collectAsState()
     val error   by viewModel.error.collectAsState()
+    // clicked results
     val start   by viewModel.startArtist.collectAsState()
     val target  by viewModel.targetArtist.collectAsState()
 
@@ -198,5 +199,18 @@ fun StartScreen(
                 }
             }
         }
+
+        Spacer(Modifier.weight(1f))  // push the button to the bottom
+
+        // only show once both have a value:
+        if (start != null && target != null) {
+            Button(
+                onClick = { onStartGame() },
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+            ) {
+                Text("Start Game")
+            }
+        }
+
     }
 }

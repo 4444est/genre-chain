@@ -7,5 +7,6 @@ data class ArtistDto(
     val id: String,
     val name: String,
     val disambiguation: String?,
-    val genres: List<String> = emptyList()
+    val genres: List<String> = emptyList(),
+    val imageUrl: String? = null
 )
