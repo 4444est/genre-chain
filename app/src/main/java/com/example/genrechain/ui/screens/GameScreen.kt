@@ -1,79 +1,109 @@
 package com.example.genrechain.ui.screens
 
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import coil.compose.rememberAsyncImagePainter
 import com.example.genrechain.data.remote.dto.ArtistDto
 import com.example.genrechain.viewmodel.GameViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.foundation.background
 import kotlinx.coroutines.launch
-
+import android.util.Log
 
 @Composable
 fun GameScreen(
     start: ArtistDto,
-    target: ArtistDto
+    target: ArtistDto,
+    onBack: () -> Unit,
+    viewModel: GameViewModel = viewModel()
 ) {
-    val viewModel: GameViewModel = viewModel()
-
-    // 1️⃣ the “current” artist in the chain
-    var current by remember { mutableStateOf(start) }
-
-    // 2️⃣ guess UI state
-    var guessQuery by remember { mutableStateOf("") }
-    var listVisible by remember { mutableStateOf(false) }
-
-    // 3️⃣ flows from VM
-    val results by viewModel.searchResults.collectAsState()
-    val error   by viewModel.error.collectAsState()
-
-    // 4️⃣ win dialog + snackbar
-    var showWinDialog by remember { mutableStateOf(false) }
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
 
-    Scaffold(scaffoldState = scaffoldState) { padding ->
+    // 1️⃣ load the *full* versions of both start & target
+    var current by remember { mutableStateOf<ArtistDto?>(null) }
+    var fullTarget by remember { mutableStateOf<ArtistDto?>(null) }
+
+    LaunchedEffect(start.id)  { current = viewModel.lookupArtist(start.id) }
+    LaunchedEffect(target.id) { fullTarget = viewModel.lookupArtist(target.id) }
+
+    // 2️⃣ block until both are ready
+    if (current == null || fullTarget == null) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
+    // unwrap non-nullables
+    val curr = current!!
+    val targ = fullTarget!!
+
+    // 3️⃣ UI state for the guess dropdown + result message
+    var guessQuery    by remember { mutableStateOf("") }
+    var listVisible   by remember { mutableStateOf(false) }
+    var resultMessage by remember { mutableStateOf<String?>(null) }
+    var showWinDialog by remember { mutableStateOf(false) }
+
+    // flows from VM
+    val results by viewModel.searchResults.collectAsState()
+    val error   by viewModel.error.collectAsState()
+
+    Scaffold(
+        scaffoldState = scaffoldState,
+        topBar = {
+            TopAppBar(
+                title = { Text("Genre Chain") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
+        }
+    ) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
+            Modifier
                 .padding(padding)
+                .fillMaxSize()
                 .padding(16.dp)
         ) {
-            // ─── Current & Target Cards ────────────────────────────────────────
+            // ─── Current & Target ────────────────────────────────────────────
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                ArtistCard(artist = current, label = "Current")
-                ArtistCard(artist = target,  label = "Target")
+                ArtistCard(artist = curr, label = "Current")
+                ArtistCard(artist = targ, label = "Target")
             }
 
             Spacer(Modifier.height(24.dp))
 
-            // ─── Guess input + button ─────────────────────────────────────────
+            // ─── Guess input + button ────────────────────────────────────────
             OutlinedTextField(
                 value = guessQuery,
                 onValueChange = { guessQuery = it },
-                label = { Text("Guess next artist") },
+                label = { Text("Search next artist") },
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(8.dp))
             Button(
                 onClick = {
+                    resultMessage = null           // clear prior feedback
                     viewModel.search(guessQuery)
                     listVisible = true
                 },
@@ -82,39 +112,52 @@ fun GameScreen(
                 Text("Search Guess")
             }
 
-            // ─── suggestion dropdown ───────────────────────────────────────────
+            // ─── dropdown suggestions ───────────────────────────────────────
             if (listVisible && results.isNotEmpty()) {
                 Surface(
-                    modifier = Modifier
+                    Modifier
                         .fillMaxWidth()
                         .heightIn(max = 200.dp)
                         .padding(top = 8.dp),
                     elevation = 8.dp
                 ) {
                     LazyColumn {
-                        items(results) { artist ->
+                        items(results) { shallow ->
                             Text(
-                                artist.name,
+                                text = shallow.name,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
                                         listVisible = false
-                                        guessQuery = ""
+                                        guessQuery  = ""
+                                        scope.launch {
+                                            try {
+                                                // fetch full data for the guess
+                                                val guessFull = viewModel.lookupArtist(shallow.id)
+                                                Log.d("GameScreen", "Full artist genres: ${guessFull.genres}")
 
-                                        // check chain step
-                                        if (viewModel.haveGenreInCommon(current, artist)) {
-                                            current = artist
+                                                // find intersection of genres
+                                                val common = curr.genres
+                                                    .map(String::lowercase)
+                                                    .intersect(guessFull.genres.map(String::lowercase))
 
-                                            // did we hit the target?
-                                            if (viewModel.haveGenreInCommon(current, target)) {
-                                                showWinDialog = true
-                                            }
+                                                if (common.isNotEmpty()) {
+                                                    // success: update current and feedback
+                                                    current = guessFull
+                                                    resultMessage = "Nice! You share: ${common.joinToString()}"
 
-                                        } else {
-                                            // no shared genre → show snackbar
-                                            scope.launch {
+                                                    // check for win against the *full* target
+                                                    if (common.intersect(targ.genres.map(String::lowercase)).isNotEmpty()) {
+                                                        showWinDialog = true
+                                                    }
+                                                } else {
+                                                    resultMessage = "No genre in common with ${curr.name}."
+                                                    scaffoldState.snackbarHostState
+                                                        .showSnackbar(resultMessage!!)
+                                                }
+                                            } catch (e: Exception) {
                                                 scaffoldState.snackbarHostState
-                                                    .showSnackbar("No genre in common with current!")
+                                                    .showSnackbar("Lookup failed: ${e.message}")
                                             }
                                         }
                                     }
@@ -126,19 +169,23 @@ fun GameScreen(
                 }
             }
 
-            // ─── error display ─────────────────────────────────────────────────
+            // ─── error & feedback ────────────────────────────────────────────
             error?.let {
-                Text("Error: $it", color = MaterialTheme.colors.error)
+                Text("Error: $it", color = MaterialTheme.colors.error,
+                    modifier = Modifier.padding(top = 8.dp))
+            }
+            resultMessage?.let {
+                Text(it, modifier = Modifier.padding(top = 8.dp))
             }
         }
 
-        // ─── Win Dialog ─────────────────────────────────────────────────────
+        // ─── Win dialog ─────────────────────────────────────────────────
         if (showWinDialog) {
             AlertDialog(
                 onDismissRequest = { showWinDialog = false },
-                title   = { Text("You Win!") },
-                text    = { Text("You’ve connected to your target by genre!") },
-                confirmButton = {
+                title            = { Text("You Win!") },
+                text             = { Text("You’ve connected to your target by genre!") },
+                confirmButton    = {
                     TextButton(onClick = { showWinDialog = false }) {
                         Text("OK")
                     }
@@ -148,6 +195,7 @@ fun GameScreen(
     }
 }
 
+// small reusable card
 @Composable
 private fun ArtistCard(artist: ArtistDto, label: String) {
     Card(elevation = 4.dp, modifier = Modifier.width(140.dp)) {
@@ -155,13 +203,12 @@ private fun ArtistCard(artist: ArtistDto, label: String) {
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(8.dp)
         ) {
-            // if you ever populate artist.imageUrl via your repo, Coil will load it here;
-            // for now this is a gray placeholder circle
             if (artist.imageUrl != null) {
                 Image(
-                    painter = rememberAsyncImagePainter(artist.imageUrl),
+                    painter            = rememberAsyncImagePainter(artist.imageUrl),
                     contentDescription = artist.name,
-                    modifier = Modifier
+                    contentScale       = ContentScale.Crop,
+                    modifier           = Modifier
                         .size(64.dp)
                         .clip(CircleShape)
                 )
@@ -173,13 +220,12 @@ private fun ArtistCard(artist: ArtistDto, label: String) {
                         .background(MaterialTheme.colors.onSurface.copy(alpha = 0.1f))
                 )
             }
-
             Text(
-                text = artist.name,
-                style = MaterialTheme.typography.subtitle1,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(top = 8.dp)
+                text      = artist.name,
+                style     = MaterialTheme.typography.subtitle1,
+                maxLines  = 1,
+                overflow  = TextOverflow.Ellipsis,
+                modifier  = Modifier.padding(top = 8.dp)
             )
             Text(label, style = MaterialTheme.typography.caption)
         }

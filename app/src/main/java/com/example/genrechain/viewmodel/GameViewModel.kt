@@ -47,29 +47,36 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun onStartClicked(artist: ArtistDto) {
+    fun onStartClicked(shallow: ArtistDto) {
         viewModelScope.launch {
             try {
-                val full = repo.lookupArtistWithGenres(artist.id)
+                // fetch the full record (with genres)
+                val full = repo.lookupArtistWithGenres(shallow.id)
+                // update in‐memory state
                 _start.value = full
+                // persist to DataStore
                 repo.saveStartArtist(full)
-            } catch (t: Throwable) {
-                _error.value = t.message
+            } catch (e: Exception) {
+                _error.value = e.message
             }
         }
     }
 
-    fun onTargetClicked(artist: ArtistDto) {
+    /** Same for target */
+    fun onTargetClicked(shallow: ArtistDto) {
         viewModelScope.launch {
             try {
-                val full = repo.lookupArtistWithGenres(artist.id)
+                val full = repo.lookupArtistWithGenres(shallow.id)
                 _target.value = full
                 repo.saveTargetArtist(full)
-            } catch (t: Throwable) {
-                _error.value = t.message
+            } catch (e: Exception) {
+                _error.value = e.message
             }
         }
     }
+
+    suspend fun lookupArtist(mbid: String): ArtistDto =
+        repo.lookupArtistWithGenres(mbid)
 
     fun haveGenreInCommon(artist1: ArtistDto, artist2: ArtistDto): Boolean {
         val artist1Genres = artist1.genres.map { it.lowercase() }
