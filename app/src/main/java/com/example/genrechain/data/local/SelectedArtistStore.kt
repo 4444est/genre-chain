@@ -37,6 +37,11 @@ class SelectedArtistStore(private val context: Context) {
         }
     }
 
+    suspend fun clearStart() = ds.edit { it.remove(PrefKeys.START) }
+
+    suspend fun clearTarget() = ds.edit { it.remove(PrefKeys.TARGET) }
+
+
     /** Flow of the saved “start” artist (or null) */
     val startFlow: Flow<ArtistDto?> = ds.data.map { prefs ->
         prefs[PrefKeys.START]?.let { Json.decodeFromString<ArtistDto>(it) }
@@ -46,4 +51,5 @@ class SelectedArtistStore(private val context: Context) {
     val targetFlow: Flow<ArtistDto?> = ds.data.map { prefs ->
         prefs[PrefKeys.TARGET]?.let { Json.decodeFromString<ArtistDto>(it) }
     }
+
 }

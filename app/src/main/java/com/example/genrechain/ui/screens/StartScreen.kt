@@ -1,217 +1,270 @@
 package com.example.genrechain.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.example.genrechain.data.remote.dto.ArtistDto
+import com.example.genrechain.ui.theme.PurpleText
 import com.example.genrechain.viewmodel.GameViewModel
-import androidx.compose.ui.graphics.Color
 
 @Composable
 fun StartScreen(
-    onStartClick: (ArtistDto) -> Unit,
-    onTargetClick: (ArtistDto) -> Unit,
+    onStartClick: (ArtistDto?) -> Unit,
+    onTargetClick: (ArtistDto?) -> Unit,
     onStartGame: () -> Unit
 ) {
-    val viewModel: GameViewModel = viewModel()
+    val vm: GameViewModel = viewModel()
+    val navBarColor = MaterialTheme.colors.background;
 
-    // two inputs
-    var query by remember { mutableStateOf("") }
-    var targetQuery by remember { mutableStateOf("") }
+    // system bar coloring
+    val sysUi = rememberSystemUiController()
+    SideEffect {
+        sysUi.setNavigationBarColor(navBarColor)
+    }
 
-    // track which dropdown is showing
+    var query        by remember { mutableStateOf("") }
+    var targetQuery  by remember { mutableStateOf("") }
     var activeSection by remember { mutableStateOf(0) }
-    var listVisible by remember { mutableStateOf(false) }
+    var listVisible  by remember { mutableStateOf(false) }
 
-    // flows from VM
-    val results by viewModel.searchResults.collectAsState()
-    val error   by viewModel.error.collectAsState()
-    // clicked results
-    val start   by viewModel.startArtist.collectAsState()
-    val target  by viewModel.targetArtist.collectAsState()
+    val results    by vm.searchResults.collectAsState()
+    val error      by vm.error.collectAsState()
+    val fullStart  by vm.startArtist.collectAsState()
+    val fullTarget by vm.targetArtist.collectAsState()
 
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
-        // ─── First Search Card ──────────────────────────────────
-        Card(
+    LaunchedEffect(fullStart)  { fullStart?.let(onStartClick) }
+    LaunchedEffect(fullTarget) { fullTarget?.let(onTargetClick) }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                backgroundColor = MaterialTheme.colors.surface,
+                elevation = 0.dp,
+                title = {
+                    Text(
+                        "Genre Chain",
+                        color = PurpleText,
+                        style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold),
+                        modifier = Modifier.fillMaxWidth().offset(x = (-10).dp), // move left a bit
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            )
+        },
+        backgroundColor = MaterialTheme.colors.background,
+    ) { padding ->
+        Column(
             Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            elevation = 8.dp
+                .padding(padding)
+                .padding(16.dp)
+        ) {
+            // ─── START SEARCH ───────────────────────────────────
+            SearchCard(
+                label = "Search start artist",
+                query = query,
+                onQueryChange = { query = it },
+                onSearch = {
+                    vm.search(query)
+                    activeSection = 1
+                    listVisible = true
+                },
+                results = results,
+                visible = listVisible && activeSection == 1,
+                onItemClick = {
+                    vm.onStartClicked(it)
+                    listVisible = false
+                }
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            // ─── TARGET SEARCH ──────────────────────────────────
+            SearchCard(
+                label = "Search target artist",
+                query = targetQuery,
+                onQueryChange = { targetQuery = it },
+                onSearch = {
+                    vm.search(targetQuery)
+                    activeSection = 2
+                    listVisible = true
+                },
+                results = results,
+                visible = listVisible && activeSection == 2,
+                onItemClick = {
+                    vm.onTargetClicked(it)
+                    listVisible = false
+                }
+            )
+
+            Spacer(Modifier.weight(1f))
+
+            error?.let {
+                Text("Error: $it", color = MaterialTheme.colors.error)
+                Spacer(Modifier.height(8.dp))
+            }
+
+            // ─── SELECTED START ───────────────────────────────
+            fullStart?.let { artist ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Start: ${artist.name}",
+                        color = PurpleText,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.weight(1f))
+                    IconButton(onClick = {
+                        vm.clearStart()
+                        onStartClick(null)
+                    }) {
+                        Icon(
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = "Clear start",
+                            tint = PurpleText
+                        )
+                    }
+                }
+                Text(
+                    "Genres: ${artist.genres.joinToString()}",
+                    color = PurpleText,
+                    modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
+                )
+            }
+
+            // ─── SELECTED TARGET ──────────────────────────────
+            fullTarget?.let { artist ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Target: ${artist.name}",
+                        color = PurpleText,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.weight(1f))
+                    IconButton(onClick = {
+                        vm.clearTarget()
+                        onTargetClick(null)
+                    }) {
+                        Icon(
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = "Clear target",
+                            tint = PurpleText
+                        )
+                    }
+                }
+                Text(
+                    "Genres: ${artist.genres.joinToString()}",
+                    color = PurpleText,
+                    modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
+                )
+            }
+
+            if (fullStart != null && fullTarget != null) {
+                Button(
+                    onClick = onStartGame,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = MaterialTheme.colors.background
+                    ),
+                    border = BorderStroke(1.dp, MaterialTheme.colors.onSurface)
+                ) {
+                    Text("Start Game", color = PurpleText)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchCard(
+    label: String,
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onSearch: () -> Unit,
+    results: List<ArtistDto>,
+    visible: Boolean,
+    onItemClick: (ArtistDto) -> Unit
+) {
+    val vm: GameViewModel = viewModel()
+    Column {
+        Card(
+            backgroundColor = MaterialTheme.colors.background,
+            elevation = 8.dp,
+            modifier = Modifier.fillMaxWidth(),
+            border = BorderStroke(1.dp, MaterialTheme.colors.onSurface)
         ) {
             Column(Modifier.padding(16.dp)) {
                 OutlinedTextField(
                     value = query,
-                    onValueChange = { query = it },
-                    label = { Text("Search start artist") },
-                    modifier = Modifier.fillMaxWidth()
+                    onValueChange = onQueryChange,
+                    label = { Text(label, color = PurpleText) },
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = LocalTextStyle.current.copy(color = PurpleText),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor   = MaterialTheme.colors.onSurface,
+                        unfocusedBorderColor = PurpleText.copy(alpha = 0.5f),
+                        cursorColor          = PurpleText
+                    )
                 )
                 Spacer(Modifier.height(8.dp))
                 Button(
-                    onClick = {
-                        viewModel.search(query)
-                        activeSection = 1
-                        listVisible = true
-                    },
-                    Modifier.fillMaxWidth()
+                    onClick = onSearch,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = MaterialTheme.colors.background
+                    ),
+                    border = BorderStroke(1.dp, MaterialTheme.colors.onSurface)
                 ) {
-                    Text("Search")
+                    Text("Search", color = PurpleText)
                 }
 
-                if (listVisible && activeSection == 1 && results.isNotEmpty()) {
+                if (visible && results.isNotEmpty()) {
                     Surface(
-                        Modifier
+                        color = MaterialTheme.colors.surface,
+                        elevation = 8.dp,
+                        modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(max = 200.dp)
                             .padding(top = 8.dp)
-                            .zIndex(1f),
-                        elevation = 8.dp
+                            .zIndex(1f)
                     ) {
                         LazyColumn {
                             items(results) { artist ->
                                 Text(
                                     artist.name,
-                                    Modifier
+                                    color = PurpleText,
+                                    modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable {
-                                            viewModel.onStartClicked(artist)
-                                            listVisible = false
-                                            onStartClick(artist)
-                                        }
+                                        .clickable { onItemClick(artist) }
                                         .padding(12.dp)
                                 )
-                                Divider()
+                                Divider(color = MaterialTheme.colors.onSurface.copy(alpha = 0.2f))
                             }
                         }
                     }
                 }
             }
         }
-
-        Spacer(Modifier.height(16.dp))
-
-        // ─── Second Search Card ─────────────────────────────────
-        Card(
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            elevation = 8.dp
-        ) {
-            Column(Modifier.padding(16.dp)) {
-                OutlinedTextField(
-                    value = targetQuery,
-                    onValueChange = { targetQuery = it },
-                    label = { Text("Search target artist") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(Modifier.height(8.dp))
-                Button(
-                    onClick = {
-                        viewModel.search(targetQuery)
-                        activeSection = 2
-                        listVisible = true
-                    },
-                    Modifier.fillMaxWidth()
-                ) {
-                    Text("Search")
-                }
-
-                if (listVisible && activeSection == 2 && results.isNotEmpty()) {
-                    Surface(
-                        Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 200.dp)
-                            .padding(top = 8.dp)
-                            .zIndex(1f),
-                        elevation = 8.dp
-                    ) {
-                        LazyColumn {
-                            items(results) { artist ->
-                                Text(
-                                    artist.name,
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            viewModel.onTargetClicked(artist)
-                                            listVisible = false
-                                            onTargetClick(artist)
-                                        }
-                                        .padding(12.dp)
-                                )
-                                Divider()
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        Spacer(Modifier.height(16.dp))
-
-        // ─── error display ─────────────────────────────────────
-        error?.let {
-            Text("Error: $it", color = MaterialTheme.colors.error)
-        }
-
-        Spacer(Modifier.height(16.dp))
-
-        // ─── Picked artists display ────────────────────────────
-        start?.let { artist ->
-            Card(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                elevation = 4.dp
-            ) {
-                Column(Modifier.padding(16.dp)) {
-                    Text("Start: ${artist.name}", style = MaterialTheme.typography.h6)
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        "Genres: ${artist.genres.joinToString()}",
-                        style = MaterialTheme.typography.body2
-                    )
-                }
-            }
-        }
-
-        target?.let { artist ->
-            Card(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                elevation = 4.dp
-            ) {
-                Column(Modifier.padding(16.dp)) {
-                    Text("Target: ${artist.name}", style = MaterialTheme.typography.h6)
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        "Genres: ${artist.genres.joinToString()}",
-                        style = MaterialTheme.typography.body2
-                    )
-                }
-            }
-        }
-
-        Spacer(Modifier.weight(1f))  // push the button to the bottom
-
-        // only show once both have a value:
-        if (start != null && target != null) {
-            Button(
-                onClick = { onStartGame() },
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
-            ) {
-                Text("Start Game")
-            }
-        }
-        error?.let {
-            Text("Error: $it", color = Color.Red, modifier = Modifier.padding(top = 8.dp))
-        }
-
     }
 }
