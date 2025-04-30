@@ -37,13 +37,15 @@ class MusicBrainzRepository(
      * Fetch full details for a single artist (including the genres array)
      * and map them into your unified ArtistDto.
      */
+
     suspend fun lookupArtistWithGenres(mbid: String): ArtistDto {
         val detail = api.getArtist(mbid)
         return ArtistDto(
             id            = detail.id,
             name          = detail.name,
-            disambiguation = detail.disambiguation,
-            genres        = detail.genres.map { it.name }
+            disambiguation= detail.disambiguation.orEmpty(),
+            genres        = detail.genres.map { it.name },
+            imageUrl      = null // or pull it from detail if MusicBrainz provides one
         )
     }
 

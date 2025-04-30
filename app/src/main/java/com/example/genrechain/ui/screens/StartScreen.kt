@@ -12,6 +12,7 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.genrechain.data.remote.dto.ArtistDto
 import com.example.genrechain.viewmodel.GameViewModel
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun StartScreen(
@@ -36,10 +37,7 @@ fun StartScreen(
     val start   by viewModel.startArtist.collectAsState()
     val target  by viewModel.targetArtist.collectAsState()
 
-    Column(Modifier
-        .fillMaxSize()
-        .padding(16.dp)
-    ) {
+    Column(Modifier.fillMaxSize().padding(16.dp)) {
         // ─── First Search Card ──────────────────────────────────
         Card(
             Modifier
@@ -210,6 +208,9 @@ fun StartScreen(
             ) {
                 Text("Start Game")
             }
+        }
+        error?.let {
+            Text("Error: $it", color = Color.Red, modifier = Modifier.padding(top = 8.dp))
         }
 
     }

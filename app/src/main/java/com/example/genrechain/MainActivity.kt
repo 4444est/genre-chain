@@ -1,50 +1,60 @@
 package com.example.genrechain
 
 import android.os.Bundle
-import android.util.Log
-//import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.activity.ComponentActivity
+import android.widget.Toast
 import androidx.activity.compose.setContent
-import com.example.genrechain.ui.screens.StartScreen
-import com.example.genrechain.ui.theme.GenreChainTheme
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
 import com.example.genrechain.data.remote.dto.ArtistDto
 import com.example.genrechain.ui.screens.GameScreen
+import com.example.genrechain.ui.screens.StartScreen
+import com.example.genrechain.ui.theme.GenreChainTheme
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             GenreChainTheme {
-                var screen by remember { mutableStateOf("start") }
-                var startArtist by remember { mutableStateOf<ArtistDto?>(null) }
+                val ctx = LocalContext.current
+
+                var screen       by remember { mutableStateOf("start") }
+                var startArtist  by remember { mutableStateOf<ArtistDto?>(null) }
                 var targetArtist by remember { mutableStateOf<ArtistDto?>(null) }
 
                 when (screen) {
                     "start" -> StartScreen(
-                        onStartClick  = { startArtist = it },
+                        onStartClick  = { startArtist  = it },
                         onTargetClick = { targetArtist = it },
-                        onStartGame = {
-                            Log.d("MainActivity", "Starting game with $startArtist → $targetArtist")
+                        onStartGame   = {
                             if (startArtist != null && targetArtist != null) {
+                                // compute lowercase intersection
+                                val common = startArtist!!.genres
+                                    .map(String::lowercase)
+                                    .intersect(targetArtist!!.genres.map(String::lowercase))
 
-                                screen = "game"
+                                if (common.isNotEmpty()) {
+                                    Toast.makeText(
+                                        ctx,
+                                        "These two share genres: ${common.joinToString()}. Pick different artists.",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                } else {
+                                    screen = "game"
+                                }
                             } else {
-                                Log.e("MainActivity", "Can't start game – start=$startArtist target=$targetArtist")
+                                Toast.makeText(ctx, "Select both a start and target artist.", Toast.LENGTH_SHORT).show()
                             }
                         }
                     )
-                    "game" -> {
-                        // safe unwrap
-                        GameScreen(start  = startArtist!!, target = targetArtist!!)
-                    }
+
+                    "game" -> GameScreen(
+                        start  = startArtist!!,
+                        target = targetArtist!!,
+                        onBack = { screen = "start" }
+                    )
                 }
             }
         }
     }
 }
-
-
