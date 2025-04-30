@@ -4,23 +4,31 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Shapes
 import androidx.compose.material.Typography
 import androidx.compose.material.darkColors
-import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
+val DarkGrey      = Color(0xFF111324)
+val ContainerGrey = Color(0xFF1b1e40)
+val PurpleText    = Color(0xFFBB86FC)
 
-private val LightColorPalette = lightColors(
-    primary = Color(0xFF6200EE),
-    primaryVariant = Color(0xFF3700B3),
-    secondary = Color(0xFF03DAC6),
+private val AppColors = darkColors(
+    primary       = PurpleText,
+    secondary     = PurpleText,
+    background    = DarkGrey,
+    surface       = ContainerGrey,
+    // white on purple was too low‐contrast; switch to black
+    onPrimary     = Color.Black,
+    onSecondary   = Color.Black,
+    onBackground  = PurpleText,
+    onSurface     = PurpleText
 )
 
 @Composable
 fun GenreChainTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colors = LightColorPalette,
+        colors     = AppColors,
         typography = Typography(),
-        shapes = Shapes(),
-        content = content
+        shapes     = Shapes(),
+        content    = content
     )
 }

@@ -78,6 +78,16 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     suspend fun lookupArtist(mbid: String): ArtistDto =
         repo.lookupArtistWithGenres(mbid)
 
+    // to clear start/target, remove from DataStore & in-memory
+    fun clearStart() = viewModelScope.launch {
+        store.clearStart()        // write prefs.edit { remove(PrefKeys.START) }
+        _start.value = null
+    }
+    fun clearTarget() = viewModelScope.launch {
+        store.clearTarget()       // write prefs.edit { remove(PrefKeys.TARGET) }
+        _target.value = null
+    }
+
     fun haveGenreInCommon(artist1: ArtistDto, artist2: ArtistDto): Boolean {
         val artist1Genres = artist1.genres.map { it.lowercase() }
         val artist2Genres = artist2.genres.map { it.lowercase() }
