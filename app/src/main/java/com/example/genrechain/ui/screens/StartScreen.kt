@@ -11,13 +11,12 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+//import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.example.genrechain.data.remote.dto.ArtistDto
 import com.example.genrechain.ui.theme.PurpleText
 import com.example.genrechain.viewmodel.GameViewModel
@@ -29,25 +28,18 @@ fun StartScreen(
     onStartGame: () -> Unit
 ) {
     val vm: GameViewModel = viewModel()
-    val navBarColor = MaterialTheme.colors.background;
 
-    // system bar coloring
-    val sysUi = rememberSystemUiController()
-    SideEffect {
-        sysUi.setNavigationBarColor(navBarColor)
-    }
-
-    var query        by remember { mutableStateOf("") }
-    var targetQuery  by remember { mutableStateOf("") }
+    var query by remember { mutableStateOf("") }
+    var targetQuery by remember { mutableStateOf("") }
     var activeSection by remember { mutableStateOf(0) }
-    var listVisible  by remember { mutableStateOf(false) }
+    var listVisible by remember { mutableStateOf(false) }
 
-    val results    by vm.searchResults.collectAsState()
-    val error      by vm.error.collectAsState()
-    val fullStart  by vm.startArtist.collectAsState()
+    val results by vm.searchResults.collectAsState()
+    val error by vm.error.collectAsState()
+    val fullStart by vm.startArtist.collectAsState()
     val fullTarget by vm.targetArtist.collectAsState()
 
-    LaunchedEffect(fullStart)  { fullStart?.let(onStartClick) }
+    LaunchedEffect(fullStart) { fullStart?.let(onStartClick) }
     LaunchedEffect(fullTarget) { fullTarget?.let(onTargetClick) }
 
     Scaffold(
@@ -57,11 +49,11 @@ fun StartScreen(
                 elevation = 0.dp,
                 title = {
                     Text(
-                        "Genre Chain",
+                        "🎶 Genre Chain",
                         color = PurpleText,
                         style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier.fillMaxWidth().offset(x = (-10).dp), // move left a bit
-                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth().offset(x = (-10).dp),
+                        textAlign = TextAlign.Center
                     )
                 }
             )
@@ -73,9 +65,8 @@ fun StartScreen(
                 .padding(padding)
                 .padding(16.dp)
         ) {
-            // ─── START SEARCH ───────────────────────────────────
             SearchCard(
-                label = "Search start artist",
+                label = "🎧 Search start artist",
                 query = query,
                 onQueryChange = { query = it },
                 onSearch = {
@@ -93,9 +84,8 @@ fun StartScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // ─── TARGET SEARCH ──────────────────────────────────
             SearchCard(
-                label = "Search target artist",
+                label = "🎯 Search target artist",
                 query = targetQuery,
                 onQueryChange = { targetQuery = it },
                 onSearch = {
@@ -114,11 +104,10 @@ fun StartScreen(
             Spacer(Modifier.weight(1f))
 
             error?.let {
-                Text("Error: $it", color = MaterialTheme.colors.error)
+                Text("⚠️ Error: $it", color = MaterialTheme.colors.error)
                 Spacer(Modifier.height(8.dp))
             }
 
-            // ─── SELECTED START ───────────────────────────────
             fullStart?.let { artist ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -148,7 +137,6 @@ fun StartScreen(
                 )
             }
 
-            // ─── SELECTED TARGET ──────────────────────────────
             fullTarget?.let { artist ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -189,7 +177,7 @@ fun StartScreen(
                     ),
                     border = BorderStroke(1.dp, MaterialTheme.colors.onSurface)
                 ) {
-                    Text("Start Game", color = PurpleText)
+                    Text("🚀 Start Game", color = PurpleText)
                 }
             }
         }
@@ -206,7 +194,6 @@ private fun SearchCard(
     visible: Boolean,
     onItemClick: (ArtistDto) -> Unit
 ) {
-    val vm: GameViewModel = viewModel()
     Column {
         Card(
             backgroundColor = MaterialTheme.colors.background,
@@ -222,9 +209,9 @@ private fun SearchCard(
                     modifier = Modifier.fillMaxWidth(),
                     textStyle = LocalTextStyle.current.copy(color = PurpleText),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor   = MaterialTheme.colors.onSurface,
+                        focusedBorderColor = MaterialTheme.colors.onSurface,
                         unfocusedBorderColor = PurpleText.copy(alpha = 0.5f),
-                        cursorColor          = PurpleText
+                        cursorColor = PurpleText
                     )
                 )
                 Spacer(Modifier.height(8.dp))
@@ -236,7 +223,7 @@ private fun SearchCard(
                     ),
                     border = BorderStroke(1.dp, MaterialTheme.colors.onSurface)
                 ) {
-                    Text("Search", color = PurpleText)
+                    Text("🔍 Search", color = PurpleText)
                 }
 
                 if (visible && results.isNotEmpty()) {
