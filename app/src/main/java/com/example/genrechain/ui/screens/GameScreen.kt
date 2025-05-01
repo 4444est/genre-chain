@@ -140,7 +140,7 @@ fun GameScreen(
                 colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.background),
                 border = BorderStroke(1.dp, MaterialTheme.colors.onSurface)
             ) {
-                Text(" Search Guess", color = PurpleText)
+                Text("Search Guess", color = PurpleText)
             }
 
             if (listVisible && results.isNotEmpty()) {
