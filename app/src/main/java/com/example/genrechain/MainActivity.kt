@@ -51,7 +51,13 @@ class MainActivity : AppCompatActivity() {
                     "game" -> GameScreen(
                         start  = startArtist!!,
                         target = targetArtist!!,
-                        onBack = { screen = "start" }
+                        onBack = { screen = "start" },
+                        onRestart = {
+                            // Reset the game screen to trigger a "restart"
+                            screen = "start"
+                            startArtist = null
+                            targetArtist = null
+                        }
                     )
                 }
             }

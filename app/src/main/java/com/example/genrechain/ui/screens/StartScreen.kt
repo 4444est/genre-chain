@@ -1,5 +1,3 @@
-// Removed only the "🔍" emoji from Search buttons
-
 package com.example.genrechain.ui.screens
 
 import androidx.compose.foundation.BorderStroke
@@ -179,6 +177,24 @@ fun StartScreen(
                     border = BorderStroke(1.dp, MaterialTheme.colors.onSurface)
                 ) {
                     Text("🚀 Start Game", color = PurpleText)
+                }
+
+                Spacer(Modifier.height(8.dp))
+
+                Button(
+                    onClick = {
+                        vm.clearStart()
+                        vm.clearTarget()
+                        onStartClick(null)
+                        onTargetClick(null)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = MaterialTheme.colors.background
+                    ),
+                    border = BorderStroke(1.dp, MaterialTheme.colors.onSurface)
+                ) {
+                    Text("🗑️ Clear All", color = PurpleText)
                 }
             }
         }
