@@ -119,7 +119,7 @@ fun GameScreen(
             OutlinedTextField(
                 value = guessQuery,
                 onValueChange = { guessQuery = it },
-                label = { Text("🔍 Search next artist", color = PurpleText) },
+                label = { Text("Search next artist", color = PurpleText) },
                 modifier = Modifier.fillMaxWidth(),
                 textStyle = LocalTextStyle.current.copy(color = PurpleText),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -140,7 +140,7 @@ fun GameScreen(
                 colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.background),
                 border = BorderStroke(1.dp, MaterialTheme.colors.onSurface)
             ) {
-                Text("🔍 Search Guess", color = PurpleText)
+                Text(" Search Guess", color = PurpleText)
             }
 
             if (listVisible && results.isNotEmpty()) {

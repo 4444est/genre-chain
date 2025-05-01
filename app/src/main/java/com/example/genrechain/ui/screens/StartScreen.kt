@@ -1,3 +1,5 @@
+// Removed only the "🔍" emoji from Search buttons
+
 package com.example.genrechain.ui.screens
 
 import androidx.compose.foundation.BorderStroke
@@ -11,7 +13,6 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-//import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -223,7 +224,7 @@ private fun SearchCard(
                     ),
                     border = BorderStroke(1.dp, MaterialTheme.colors.onSurface)
                 ) {
-                    Text("🔍 Search", color = PurpleText)
+                    Text("Search", color = PurpleText)
                 }
 
                 if (visible && results.isNotEmpty()) {
