@@ -1,6 +1,5 @@
 package com.example.genrechain.ui.screens
 
-//import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,6 +30,7 @@ fun GameScreen(
     start: ArtistDto,
     target: ArtistDto,
     onBack: () -> Unit,
+    onRestart: () -> Unit, // NEW
     viewModel: GameViewModel = viewModel()
 ) {
     val navBarColor = MaterialTheme.colors.background
@@ -206,6 +206,14 @@ fun GameScreen(
                 confirmButton = {
                     TextButton(onClick = { showWinDialog = false }) {
                         Text("OK", color = PurpleText)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showWinDialog = false
+                        onRestart() // <- Restart logic
+                    }) {
+                        Text("Restart", color = PurpleText)
                     }
                 }
             )
