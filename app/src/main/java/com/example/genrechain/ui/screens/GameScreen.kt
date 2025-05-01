@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -24,6 +25,10 @@ import com.example.genrechain.ui.theme.PurpleText
 import com.example.genrechain.viewmodel.GameViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
+import com.example.genrechain.R
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+
 
 @Composable
 fun GameScreen(
@@ -73,22 +78,36 @@ fun GameScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                backgroundColor = MaterialTheme.colors.surface,
-                elevation = 0.dp,
+                backgroundColor = MaterialTheme.colors.background,
+                elevation       = 0.dp,
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = PurpleText)
+                        Icon(
+                            imageVector     = Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint            = PurpleText
+                        )
                     }
                 },
                 title = {
                     Box(Modifier.fillMaxWidth()) {
-                        Text(
-                            "🎶 Genre Chain",
-                            modifier = Modifier.align(Alignment.Center).offset(x = (-10).dp),
-                            textAlign = TextAlign.Center,
-                            color = PurpleText,
-                            style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold)
-                        )
+                        Row(
+                            Modifier.align(Alignment.Center).offset(x = (-16).dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Image(
+                                painter            = painterResource(R.drawable.genrechain_logo),
+                                contentDescription = "Logo",
+                                modifier           = Modifier.size(32.dp)
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                "Genre Chain",
+                                color     = PurpleText,
+                                style     = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold),
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
                 },
                 actions = {
@@ -96,7 +115,7 @@ fun GameScreen(
                 }
             )
         },
-        scaffoldState = scaffoldState,
+        scaffoldState   = scaffoldState,
         backgroundColor = MaterialTheme.colors.background
     ) { padding ->
         Column(
@@ -110,8 +129,8 @@ fun GameScreen(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                ArtistCard(curr, "🎧 Current")
-                ArtistCard(targ, "🎯 Target")
+                ArtistCard(curr, "Current")
+                ArtistCard(targ, "Target")
             }
 
             Spacer(Modifier.height(30.dp))

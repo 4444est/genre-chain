@@ -19,6 +19,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.genrechain.data.remote.dto.ArtistDto
 import com.example.genrechain.ui.theme.PurpleText
 import com.example.genrechain.viewmodel.GameViewModel
+import com.example.genrechain.R
+import androidx.compose.foundation.Image
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 
 @Composable
 fun StartScreen(
@@ -44,20 +49,46 @@ fun StartScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                backgroundColor = MaterialTheme.colors.surface,
-                elevation = 0.dp,
+                backgroundColor = MaterialTheme.colors.background,
+                elevation       = 0.dp,
+                // stub nav icon to reserve space
+                navigationIcon = {
+                    IconButton(onClick = { /* no-op */ }, enabled = false) {
+                        Icon(
+                            imageVector     = Icons.Default.ArrowBack,
+                            contentDescription = null,
+                            tint            = Color.Transparent
+                        )
+                    }
+                },
                 title = {
-                    Text(
-                        "🎶 Genre Chain",
-                        color = PurpleText,
-                        style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier.fillMaxWidth().offset(x = (-10).dp),
-                        textAlign = TextAlign.Center
-                    )
+                    Box(Modifier.fillMaxWidth()) {
+                        Row(
+                            Modifier.align(Alignment.Center).offset(x = (-16).dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Image(
+                                painter            = painterResource(R.drawable.genrechain_logo),
+                                contentDescription = "Logo",
+                                modifier           = Modifier.size(32.dp)
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                "Genre Chain",
+                                color     = PurpleText,
+                                style     = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                },
+                // reserve same width on the right
+                actions = {
+                    Spacer(Modifier.width(56.dp))
                 }
             )
         },
-        backgroundColor = MaterialTheme.colors.background,
+        backgroundColor = MaterialTheme.colors.background
     ) { padding ->
         Column(
             Modifier
@@ -65,7 +96,7 @@ fun StartScreen(
                 .padding(16.dp)
         ) {
             SearchCard(
-                label = "🎧 Search start artist",
+                label = "Search start artist",
                 query = query,
                 onQueryChange = { query = it },
                 onSearch = {
@@ -84,7 +115,7 @@ fun StartScreen(
             Spacer(Modifier.height(16.dp))
 
             SearchCard(
-                label = "🎯 Search target artist",
+                label = "Search target artist",
                 query = targetQuery,
                 onQueryChange = { targetQuery = it },
                 onSearch = {
@@ -176,7 +207,7 @@ fun StartScreen(
                     ),
                     border = BorderStroke(1.dp, MaterialTheme.colors.onSurface)
                 ) {
-                    Text("🚀 Start Game", color = PurpleText)
+                    Text("Start Game", color = PurpleText)
                 }
 
                 Spacer(Modifier.height(8.dp))
@@ -194,7 +225,7 @@ fun StartScreen(
                     ),
                     border = BorderStroke(1.dp, MaterialTheme.colors.onSurface)
                 ) {
-                    Text("🗑️ Clear All", color = PurpleText)
+                    Text("Clear All", color = PurpleText)
                 }
             }
         }
