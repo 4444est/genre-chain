@@ -21,10 +21,6 @@ Genre Chain is built using the MVVM (Model-View-ViewModel) architecture:
 - ViewModel: Manages data logic and state
 - View: Uses Jetpack Compose to build a responsive UI
 
-## Database
-
-The app uses Room Database to cache searched artists and preserve user history. This improves performance and supports offline access.
-
 ## Testing
 
 Tested on:
