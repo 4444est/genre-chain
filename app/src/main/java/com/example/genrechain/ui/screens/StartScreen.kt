@@ -33,6 +33,7 @@ fun StartScreen(
 ) {
     val vm: GameViewModel = viewModel()
 
+    // save inputted data to viewmodel
     var query by remember { mutableStateOf("") }
     var targetQuery by remember { mutableStateOf("") }
     var activeSection by remember { mutableStateOf(0) }
@@ -51,9 +52,9 @@ fun StartScreen(
             TopAppBar(
                 backgroundColor = MaterialTheme.colors.background,
                 elevation       = 0.dp,
-                // stub nav icon to reserve space
+                // stub nav icon to reserve space so that the title is in the same position
                 navigationIcon = {
-                    IconButton(onClick = { /* no-op */ }, enabled = false) {
+                    IconButton(onClick = {}, enabled = false) {
                         Icon(
                             imageVector     = Icons.Default.ArrowBack,
                             contentDescription = null,
@@ -134,7 +135,7 @@ fun StartScreen(
             Spacer(Modifier.weight(1f))
 
             error?.let {
-                Text("⚠️ Error: $it", color = MaterialTheme.colors.error)
+                Text("Error: $it", color = MaterialTheme.colors.error)
                 Spacer(Modifier.height(8.dp))
             }
 

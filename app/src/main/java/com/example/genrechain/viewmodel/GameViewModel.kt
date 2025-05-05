@@ -37,6 +37,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // search for artists by name
     fun search(name: String) {
         viewModelScope.launch {
             try {
@@ -62,12 +63,14 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** Same for target */
     fun onTargetClicked(shallow: ArtistDto) {
         viewModelScope.launch {
             try {
+                // fetch the full record (with genres)
                 val full = repo.lookupArtistWithGenres(shallow.id)
+                // update in‐memory state
                 _target.value = full
+                // persist to DataStore
                 repo.saveTargetArtist(full)
             } catch (e: Exception) {
                 _error.value = e.message
@@ -80,11 +83,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     // to clear start/target, remove from DataStore & in-memory
     fun clearStart() = viewModelScope.launch {
-        store.clearStart()        // write prefs.edit { remove(PrefKeys.START) }
+        store.clearStart()
         _start.value = null
     }
     fun clearTarget() = viewModelScope.launch {
-        store.clearTarget()       // write prefs.edit { remove(PrefKeys.TARGET) }
+        store.clearTarget()
         _target.value = null
     }
 

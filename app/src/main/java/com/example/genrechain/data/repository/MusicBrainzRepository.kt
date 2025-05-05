@@ -15,10 +15,7 @@ class MusicBrainzRepository(
 ) {
     private val gson = Gson()
 
-    /**
-     * A lightweight search that only returns the top‐level artist list
-     * (genres may be null here if the API didn’t include them).
-     */
+    // returns top level list of matching artists
     suspend fun searchArtist(name: String): List<ArtistDto> {
         val response = api.searchArtists(query = "artist:$name")
         Log.d("MB Repo", "raw artists list = ${gson.toJson(response.artists)}")
@@ -33,11 +30,7 @@ class MusicBrainzRepository(
         }
     }
 
-    /**
-     * Fetch full details for a single artist (including the genres array)
-     * and map them into your unified ArtistDto.
-     */
-
+    // returns artist detail with genres
     suspend fun lookupArtistWithGenres(mbid: String): ArtistDto {
         val detail = api.getArtist(mbid)
         return ArtistDto(
@@ -49,12 +42,9 @@ class MusicBrainzRepository(
         )
     }
 
-
-    /** Persist the user’s selected artist as JSON */
-//    suspend fun saveSelectedArtist(artist: ArtistDto) {
-//        store.save(artist)
-//    }
+    // persist start artist
     suspend fun saveStartArtist(artist: ArtistDto) {store.saveStart(artist) }
+    // persist target artist
     suspend fun saveTargetArtist(artist: ArtistDto) {store.saveTarget(artist)}
 
     fun savedStartArtistFlow(): Flow<ArtistDto?> = store.startFlow

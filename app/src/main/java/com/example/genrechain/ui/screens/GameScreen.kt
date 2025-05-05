@@ -65,6 +65,7 @@ fun GameScreen(
     val curr = current!!
     val targ = fullTarget!!
 
+    // save inputted data to viewmodel
     var guessQuery by remember { mutableStateOf("") }
     var listVisible by remember { mutableStateOf(false) }
     var resultMessage by remember { mutableStateOf<String?>(null) }
@@ -75,13 +76,14 @@ fun GameScreen(
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberScaffoldState()
 
+
     Scaffold(
         topBar = {
             TopAppBar(
                 backgroundColor = MaterialTheme.colors.background,
                 elevation       = 0.dp,
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = onBack) { // back button
                         Icon(
                             imageVector     = Icons.Default.ArrowBack,
                             contentDescription = "Back",
@@ -95,7 +97,7 @@ fun GameScreen(
                             Modifier.align(Alignment.Center).offset(x = (-16).dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Image(
+                            Image( // genrechain logo
                                 painter            = painterResource(R.drawable.genrechain_logo),
                                 contentDescription = "Logo",
                                 modifier           = Modifier.size(32.dp)
@@ -205,7 +207,7 @@ fun GameScreen(
             }
 
             error?.let {
-                Text("⚠️ Error: $it", color = MaterialTheme.colors.error, modifier = Modifier.padding(top = 8.dp))
+                Text("Error: $it", color = MaterialTheme.colors.error, modifier = Modifier.padding(top = 8.dp))
             }
             resultMessage?.let {
                 Text(it, modifier = Modifier.padding(top = 8.dp), color = PurpleText)

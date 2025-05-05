@@ -16,7 +16,6 @@ private val AppColors = darkColors(
     secondary     = PurpleText,
     background    = DarkGrey,
     surface       = ContainerGrey,
-    // white on purple was too low‐contrast; switch to black
     onPrimary     = Color.Black,
     onSecondary   = Color.Black,
     onBackground  = PurpleText,

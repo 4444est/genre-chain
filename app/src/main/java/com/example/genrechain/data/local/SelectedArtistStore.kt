@@ -23,14 +23,14 @@ object PrefKeys {
 class SelectedArtistStore(private val context: Context) {
     private val ds = context.ds
 
-    /** Persist the “start” artist */
+    // persist start artist
     suspend fun saveStart(artist: ArtistDto) {
         ds.edit { prefs ->
             prefs[PrefKeys.START] = Json.encodeToString(artist)
         }
     }
 
-    /** Persist the “target” artist */
+    // persist target artist
     suspend fun saveTarget(artist: ArtistDto) {
         ds.edit { prefs ->
             prefs[PrefKeys.TARGET] = Json.encodeToString(artist)
@@ -42,12 +42,12 @@ class SelectedArtistStore(private val context: Context) {
     suspend fun clearTarget() = ds.edit { it.remove(PrefKeys.TARGET) }
 
 
-    /** Flow of the saved “start” artist (or null) */
+    // flow of start artist (or null)
     val startFlow: Flow<ArtistDto?> = ds.data.map { prefs ->
         prefs[PrefKeys.START]?.let { Json.decodeFromString<ArtistDto>(it) }
     }
 
-    /** Flow of the saved “target” artist (or null) */
+    // flow of target artist (or null)
     val targetFlow: Flow<ArtistDto?> = ds.data.map { prefs ->
         prefs[PrefKeys.TARGET]?.let { Json.decodeFromString<ArtistDto>(it) }
     }

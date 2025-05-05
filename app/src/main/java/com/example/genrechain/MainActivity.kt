@@ -18,6 +18,7 @@ class MainActivity : AppCompatActivity() {
             GenreChainTheme {
                 val ctx = LocalContext.current
 
+                // begin with start screen, set start and target artists to null
                 var screen       by remember { mutableStateOf("start") }
                 var startArtist  by remember { mutableStateOf<ArtistDto?>(null) }
                 var targetArtist by remember { mutableStateOf<ArtistDto?>(null) }
@@ -33,13 +34,15 @@ class MainActivity : AppCompatActivity() {
                                     .map(String::lowercase)
                                     .intersect(targetArtist!!.genres.map(String::lowercase))
 
+                                // if genres in common, show toast. don't let game start
                                 if (common.isNotEmpty()) {
                                     Toast.makeText(
                                         ctx,
                                         "These two share genres: ${common.joinToString()}. Pick different artists.",
                                         Toast.LENGTH_LONG
                                     ).show()
-                                } else {
+
+                                } else { // only allow game start if there are no starting genres in common
                                     screen = "game"
                                 }
                             } else {
@@ -53,7 +56,7 @@ class MainActivity : AppCompatActivity() {
                         target = targetArtist!!,
                         onBack = { screen = "start" },
                         onRestart = {
-                            // Reset the game screen to trigger a "restart"
+                            // reset the game screen to trigger a restart
                             screen = "start"
                             startArtist = null
                             targetArtist = null
