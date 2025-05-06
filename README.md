@@ -10,6 +10,11 @@ Genre Chain is an Android application that lets users explore connections betwee
 - Clean, user-friendly interface built with Material Design
 - Real-time data fetched using a public REST API
 
+## Frontend Interface
+
+![Start Screen](GameScreen.png)
+![Game Screen](StartScreen.png)
+
 ## API Integration
 
 We used the [MusicBrainz API](https://musicbrainz.org/doc/MusicBrainz_API) to retrieve artist and genre data. All artist information is pulled dynamically using RESTful endpoints.
