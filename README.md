@@ -49,9 +49,12 @@ Genre Chain is built using the MVVM (Model-View-ViewModel) architecture:
 ## Screenshots
  
 Home screen with artist search
+
 ![Screenshot 2025-05-13 062258](https://github.com/user-attachments/assets/5d35de7e-1b12-464b-ad73-250d349cfdee)
   
 Genre-based artist connection list
+
+
 ![Screenshot 2025-05-13 062537](https://github.com/user-attachments/assets/960adf1b-682a-4adf-95a8-683fd80c2db2)
 
 
